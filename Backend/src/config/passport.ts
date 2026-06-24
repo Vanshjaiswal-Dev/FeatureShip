@@ -1,7 +1,6 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import User from '../models/User';
-import Organization from '../models/Organization';
+import prisma from '../config/prisma';
 
 passport.use(
   new GoogleStrategy(
@@ -17,25 +16,31 @@ passport.use(
           return done(new Error('No email found from Google'));
         }
 
-        let user = await User.findOne({ googleId: profile.id });
+        let user = await prisma.user.findUnique({ where: { googleId: profile.id } });
 
         if (!user) {
-          user = await User.findOne({ email });
+          user = await prisma.user.findUnique({ where: { email } });
 
           if (user) {
             // Link google account
-            user.googleId = profile.id;
-            await user.save();
+            user = await prisma.user.update({
+              where: { id: user.id },
+              data: { googleId: profile.id },
+            });
           } else {
             // Create a new organization for the user by default
-            const organization = await Organization.create({ name: `${profile.displayName}'s Org` });
+            const organization = await prisma.organization.create({
+              data: { name: `${profile.displayName}'s Org` },
+            });
 
-            user = await User.create({
-              name: profile.displayName,
-              email: email,
-              googleId: profile.id,
-              organizationId: organization._id,
-              role: 'admin',
+            user = await prisma.user.create({
+              data: {
+                name: profile.displayName,
+                email: email,
+                googleId: profile.id,
+                organizationId: organization.id,
+                role: 'admin',
+              },
             });
           }
         }

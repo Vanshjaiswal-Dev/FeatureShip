@@ -5,7 +5,6 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import passport from 'passport';
 
-import { connectDB } from './config/db';
 import { connectRedis } from './config/redis';
 import './config/passport';
 
@@ -33,7 +32,6 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Start Server
 const startServer = async () => {
-  await connectDB();
   await connectRedis();
 
   app.listen(PORT, () => {

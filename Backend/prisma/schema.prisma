@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  users     User[]
+  projects  Project[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id             String       @id @default(uuid())
+  name           String
+  email          String       @unique
+  password       String?
+  googleId       String?      @unique
+  role           String       @default("admin") // "admin", "editor", "viewer"
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Project {
+  id             String         @id @default(uuid())
+  name           String
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  environments   Environment[]
+  featureFlags   FeatureFlag[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Environment {
+  id        String    @id @default(uuid())
+  name      String    // e.g. "Dev", "Staging", "Prod"
+  clientKey String    @unique @default(uuid())
+  serverKey String    @unique @default(uuid())
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id])
+  flagConfigs EnvironmentFlagConfig[]
+  events    AnalyticsEvent[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model FeatureFlag {
+  id          String    @id @default(uuid())
+  key         String
+  name        String
+  description String?
+  type        String    @default("boolean") // boolean, string, number, json
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  configs     EnvironmentFlagConfig[]
+  experiments Experiment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([key, projectId])
+}
+
+model EnvironmentFlagConfig {
+  id               String      @id @default(uuid())
+  isActive         Boolean     @default(false)
+  defaultVariant   String      @default("false")
+  rules            Json?       // Stores targeting rules
+  rolloutPercentage Int        @default(100)
+  flagId           String
+  flag             FeatureFlag @relation(fields: [flagId], references: [id])
+  environmentId    String
+  environment      Environment @relation(fields: [environmentId], references: [id])
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@unique([flagId, environmentId])
+}
+
+model Experiment {
+  id                String      @id @default(uuid())
+  metrics           String      // what we are measuring
+  status            String      @default("running") // running, completed
+  aiWinnerVariantId String?
+  flagId            String
+  flag              FeatureFlag @relation(fields: [flagId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model AnalyticsEvent {
+  id            String      @id @default(uuid())
+  flagKey       String
+  userId        String
+  eventType     String      // "evaluation", "conversion"
+  environmentId String
+  environment   Environment @relation(fields: [environmentId], references: [id])
+  timestamp     DateTime    @default(now())
+}
