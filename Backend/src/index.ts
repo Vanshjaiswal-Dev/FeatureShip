@@ -9,6 +9,9 @@ import { connectRedis } from './config/redis';
 import './config/passport';
 
 import authRoutes from './routes/auth.routes';
+import projectRoutes from './routes/project.routes';
+import environmentRoutes from './routes/environment.routes';
+import featureFlagRoutes from './routes/featureFlag.routes';
 import prisma from './config/prisma';
 
 const app: Application = express();
@@ -23,6 +26,10 @@ app.use(passport.initialize());
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/projects', projectRoutes);
+// Nested routes under projects
+app.use('/api/v1/projects/:projectId/environments', environmentRoutes);
+app.use('/api/v1/projects/:projectId/flags', featureFlagRoutes);
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {
