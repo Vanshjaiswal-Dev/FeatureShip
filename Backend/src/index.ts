@@ -12,6 +12,7 @@ import authRoutes from './routes/auth.routes';
 import projectRoutes from './routes/project.routes';
 import environmentRoutes from './routes/environment.routes';
 import featureFlagRoutes from './routes/featureFlag.routes';
+import clientRoutes from './routes/client.routes';
 import prisma from './config/prisma';
 
 const app: Application = express();
@@ -30,6 +31,7 @@ app.use('/api/v1/projects', projectRoutes);
 // Nested routes under projects
 app.use('/api/v1/projects/:projectId/environments', environmentRoutes);
 app.use('/api/v1/projects/:projectId/flags', featureFlagRoutes);
+app.use('/api/v1/client', clientRoutes);
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {

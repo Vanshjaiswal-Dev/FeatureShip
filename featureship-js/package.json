@@ -1,0 +1,40 @@
+{
+  "name": "featureship-js",
+  "version": "1.0.0",
+  "description": "FeatureShip Javascript/TypeScript SDK for Node and Browser",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "node test-sdk.js"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.1",
+    "eventsource": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/eventsource": "^1.1.15",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.3.3",
+    "react": "^18.3.1",
+    "tsup": "^8.2.3",
+    "typescript": "^5.5.4"
+  }
+}
