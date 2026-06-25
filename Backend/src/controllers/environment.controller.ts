@@ -1,12 +1,12 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
-export const createEnvironment = async (req: AuthRequest, res: Response): Promise<void> => {
+export const createEnvironment = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { projectId } = req.params;
+    const projectId = req.params.projectId as string;
     const { name } = req.body;
-    const orgId = req.user?.orgId;
+    const orgId = (req as AuthRequest).user?.orgId as string;
 
     if (!name || !projectId || !orgId) {
       res.status(400).json({ error: 'Environment name and project ID are required' });
@@ -40,8 +40,8 @@ export const createEnvironment = async (req: AuthRequest, res: Response): Promis
       await prisma.environmentFlagConfig.createMany({
         data: flags.map(flag => ({
           environmentId: environment.id,
-          featureFlagId: flag.id,
-          status: 'OFF'
+          flagId: flag.id,
+          isActive: false
         }))
       });
     }
@@ -53,10 +53,10 @@ export const createEnvironment = async (req: AuthRequest, res: Response): Promis
   }
 };
 
-export const getEnvironmentsByProject = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getEnvironmentsByProject = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { projectId } = req.params;
-    const orgId = req.user?.orgId;
+    const projectId = req.params.projectId as string;
+    const orgId = (req as AuthRequest).user?.orgId as string;
 
     // Verify project belongs to organization
     const project = await prisma.project.findFirst({

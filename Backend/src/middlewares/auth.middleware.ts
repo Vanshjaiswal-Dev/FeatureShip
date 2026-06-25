@@ -10,11 +10,13 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const protect = (req: AuthRequest, res: Response, next: NextFunction): void => {
+export const protect = (req: Request, res: Response, next: NextFunction): void => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
+  const authReq = req as AuthRequest;
+
+  if (authReq.headers.authorization && authReq.headers.authorization.startsWith('Bearer')) {
+    token = authReq.headers.authorization.split(' ')[1];
   }
 
   if (!token) {
@@ -24,7 +26,7 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction): vo
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { id: string; orgId: string };
-    req.user = decoded;
+    authReq.user = decoded;
     next();
   } catch (error) {
     res.status(401).json({ error: 'Not authorized, token failed' });

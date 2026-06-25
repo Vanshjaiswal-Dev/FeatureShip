@@ -1,11 +1,11 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
-export const createProject = async (req: AuthRequest, res: Response): Promise<void> => {
+export const createProject = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, description } = req.body;
-    const orgId = req.user?.orgId;
+    const { name } = req.body;
+    const orgId = (req as AuthRequest).user?.orgId as string;
 
     if (!name || !orgId) {
       res.status(400).json({ error: 'Project name and organization are required' });
@@ -16,7 +16,6 @@ export const createProject = async (req: AuthRequest, res: Response): Promise<vo
     const project = await prisma.project.create({
       data: {
         name,
-        description,
         organizationId: orgId,
         environments: {
           create: [
@@ -37,9 +36,9 @@ export const createProject = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-export const getProjects = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getProjects = async (req: Request, res: Response): Promise<void> => {
   try {
-    const orgId = req.user?.orgId;
+    const orgId = (req as AuthRequest).user?.orgId as string;
 
     const projects = await prisma.project.findMany({
       where: { organizationId: orgId },
@@ -53,10 +52,10 @@ export const getProjects = async (req: AuthRequest, res: Response): Promise<void
   }
 };
 
-export const getProjectById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getProjectById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { id } = req.params;
-    const orgId = req.user?.orgId;
+    const id = req.params.id as string;
+    const orgId = (req as AuthRequest).user?.orgId as string;
 
     const project = await prisma.project.findFirst({
       where: { id, organizationId: orgId },
